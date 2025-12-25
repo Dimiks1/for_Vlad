@@ -1,0 +1,533 @@
+@page
+@model CatalogModel
+
+@{
+    ViewData["Title"] = "Каталог товаров - ToolDrop";
+
+    // Получаем ID текущего пользователя из сессии
+    var currentUserId = 0;
+    var userDataJson = HttpContext.Session.GetString("UserData");
+    if (!string.IsNullOrEmpty(userDataJson))
+    {
+        try
+        {
+            var userData = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(userDataJson);
+            if (userData.TryGetProperty("id", out var idProperty) &&
+                idProperty.ValueKind == System.Text.Json.JsonValueKind.Number)
+            {
+                currentUserId = idProperty.GetInt32();
+            }
+        }
+        catch { }
+    }
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Sidebar - Корзина -->
+        <div class="col-lg-3">
+            <div class="card shadow-sm sticky-top" style="top: 80px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">🛒 Ваша корзина</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Баланс -->
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <small class="text-muted">Баланс счёта</small>
+                        <h5 class="mb-0"><span id="userBalance">Загрузка...</span> ₽</h5>
+                    </div>
+
+                    <!-- Товары в корзине -->
+                    <div id="cartItemsList" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px;">
+                        <p class="text-muted text-center">Корзина пуста</p>
+                    </div>
+
+                    <!-- Итого -->
+                    <div class="border-top pt-3">
+                        <div class="d-flex justify-content-between mb-3">
+                            <strong>Итого:</strong>
+                            <strong id="cartTotal">0 ₽</strong>
+                        </div>
+                        <button class="btn btn-primary w-100 mb-2" onclick="checkout()">Купить</button>
+                        <button class="btn btn-outline-secondary w-100" onclick="clearCart()">Очистить корзину</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <!-- Search & Filter -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <input type="text" class="form-control" id="searchText" placeholder="Поиск по названию..." onkeyup="filterItems()">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="searchArticle" placeholder="Поиск по артикулу..." onkeyup="filterItems()">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <select class="form-select" id="categoryFilter" onchange="filterItems()">
+                                    <option value="">Все категории</option>
+                                    <option value="Weapon">⚔️ Оружие</option>
+                                    <option value="Armor">🛡️ Броня</option>
+                                    <option value="Potion">🧪 Зелья</option>
+                                    <option value="Accessory">💎 Аксессуары</option>
+                                    <option value="Other">📦 Другое</option>
+                                </select>
+                                <select class="form-select" id="rarityFilter" onchange="filterItems()">
+                                    <option value="">Все редкости</option>
+                                    <option value="Common">⚪ Common</option>
+                                    <option value="Uncommon">🟢 Uncommon</option>
+                                    <option value="Rare">🔵 Rare</option>
+                                    <option value="Epic">🟣 Epic</option>
+                                    <option value="Legendary">🟡 Legendary</option>
+                                    <option value="Mythical">🟠 Mythical</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button class="btn btn-success me-2" onclick="search()">🔍 Поиск</button>
+                            <button class="btn btn-secondary" onclick="resetFilters()">🔄 Сбросить</button>
+                            <button class="btn btn-outline-primary float-end" onclick="window.location.href='/myitems'">
+                                📦 Мои товары
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div id="itemsContainer" class="row g-4">
+                @if (Model.GameItems != null && Model.GameItems.Any())
+                {
+                    @foreach (var item in Model.GameItems)
+                    {
+                        var isMyItem = currentUserId > 0 && item.UserId == currentUserId;
+
+                        <div class="col-md-6 col-lg-4 game-item"
+                             data-category="@item.Category"
+                             data-rarity="@item.Rarity"
+                             data-name="@item.Name.ToLower()"
+                             data-article="@item.ItemCode.ToLower()">
+                            <div class="card h-100 shadow-sm" style="transition: transform 0.3s; position: relative;">
+                                <!-- Метка "Мой товар" -->
+                                @if (isMyItem)
+                                {
+                                    <div class="my-item-badge">👑 Мой товар</div>
+                                }
+
+                                <!-- Image Placeholder -->
+                                <div style="height: 180px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">
+                                    @GetIcon(item.Category)
+                                </div>
+
+                                <div class="card-body">
+                                    <h6 class="card-title">@item.Name</h6>
+                                    <p class="card-text small text-muted">@item.Description</p>
+
+                                    <div class="mb-2">
+                                        <span class="badge bg-secondary">Артикул: @item.ItemCode</span>
+                                        @if (isMyItem)
+                                        {
+                                            <span class="badge bg-success ms-1">👤 Ваш товар</span>
+                                        }
+                                    </div>
+
+                                    <div class="mb-2 d-flex justify-content-between">
+                                        <div>
+                                            <small class="text-muted">
+                                                Редкость: <span class="@GetRarityClass(item.Rarity)">@item.Rarity</span>
+                                            </small>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">
+                                                Категория: <span class="badge bg-info">@GetCategoryName(item.Category)</span>
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            Остаток: <span class="@GetQuantityClass(item.Quantity)">@item.Quantity шт.</span>
+                                        </small>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        @if (item.Quantity > 0)
+                                        {
+                                            <strong style="font-size: 18px;">@item.Price.ToString("N2") ₽</strong>
+                                        }
+                                        else
+                                        {
+                                            <strong style="font-size: 18px; color: #dc3545;">Товар закончился</strong>
+                                        }
+                                        <span class="badge @GetCategoryBadgeClass(item.Category)">
+                                            @GetCategoryIcon(item.Category)
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="card-footer bg-white">
+                                    @if (item.Quantity > 0)
+                                    {
+                                        <div class="input-group input-group-sm mb-2">
+                                            <input type="number" class="form-control" value="1" min="1" max="@item.Quantity" id="qty_@item.Id">
+                                            <button class="btn btn-primary" type="button" onclick="addToCart(@item.Id, '@item.Name.Replace("'", "\\'")', @item.Price.ToString("F2").Replace(",", "."), document.getElementById('qty_@item.Id').value, @item.Quantity)">
+                                                🛒 Добавить
+                                            </button>
+                                        </div>
+                                        <div class="text-center">
+                                            <small class="text-muted">Максимум: @item.Quantity шт.</small>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-warning text-center py-2 mb-0">
+                                            <i class="fas fa-exclamation-triangle"></i> Товар закончился
+                                        </div>
+                                    }
+
+                                    @if (isMyItem)
+                                    {
+                                        <div class="mt-2">
+                                            <button class="btn btn-sm btn-outline-primary w-100" onclick="window.location.href='/myitems'">
+                                                <i class="fas fa-edit"></i> Управлять
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            📦 Товары скоро появятся. Администратор загружает каталог...
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCartDisplay();
+        updateUserBalance();
+    });
+
+    // Функция для обновления баланса пользователя ИЗ БАЗЫ ДАННЫХ
+    async function updateUserBalance() {
+        try {
+            const response = await fetch('/api/account/me');
+
+            if (response.status === 401) {
+                // Пользователь не авторизован
+                document.getElementById('userBalance').textContent = '0';
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.user) {
+                // Обновляем отображение баланса
+                const balance = data.user.balance || 0;
+                document.getElementById('userBalance').textContent = balance;
+
+                // Обновляем объект пользователя в localStorage
+                const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+                currentUser.balance = balance;
+                localStorage.setItem('user', JSON.stringify(currentUser));
+            } else {
+                document.getElementById('userBalance').textContent = '0';
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке баланса:', error);
+            document.getElementById('userBalance').textContent = 'Ошибка';
+        }
+    }
+
+    function addToCart(id, name, price, quantity, maxQuantity) {
+        quantity = parseInt(quantity) || 1;
+        maxQuantity = parseInt(maxQuantity) || 999;
+
+        // Проверяем, что запрошенное количество не превышает остаток
+        if (quantity > maxQuantity) {
+            showAlert(`Доступно только ${maxQuantity} шт. товара "${name}"`, 'warning');
+            document.getElementById('qty_' + id).value = maxQuantity;
+            return;
+        }
+
+        // Проверяем, что количество больше 0
+        if (quantity <= 0) {
+            showAlert('Количество должно быть больше 0', 'warning');
+            return;
+        }
+
+        const existingItem = cart.find(i => i.id === id);
+
+        if (existingItem) {
+            // Проверяем, не превысит ли общее количество максимальный остаток
+            const newTotalQuantity = existingItem.quantity + quantity;
+            if (newTotalQuantity > maxQuantity) {
+                showAlert(`Нельзя добавить больше ${maxQuantity} шт. товара "${name}"`, 'warning');
+                return;
+            }
+            existingItem.quantity += quantity;
+        } else {
+            cart.push({ id, name, price: parseFloat(price), quantity, maxQuantity });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartDisplay();
+        showAlert(`"${name}" добавлен в корзину! (${quantity} шт.)`);
+    }
+
+    function updateCartDisplay() {
+        let html = '';
+        let total = 0;
+
+        if (cart.length === 0) {
+            html = '<p class="text-muted text-center">Корзина пуста</p>';
+        } else {
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                html += `
+                    <div class="mb-3 pb-3 border-bottom">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>${item.name}</strong>
+                                <p class="text-muted small mb-1">${item.price.toFixed(2)} ₽ × ${item.quantity} шт.</p>
+                                <small class="text-info">Макс: ${item.maxQuantity} шт.</small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger" onclick="removeFromCart(${index})">✕</button>
+                        </div>
+                        <div class="text-end">
+                            <strong>${itemTotal.toFixed(2)} ₽</strong>
+                        </div>
+                    </div>
+                `;
+                total += itemTotal;
+            });
+        }
+
+        document.getElementById('cartItemsList').innerHTML = html;
+        document.getElementById('cartTotal').textContent = total.toFixed(2) + ' ₽';
+    }
+
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartDisplay();
+    }
+
+    function clearCart() {
+        if (confirm('Вы уверены, что хотите очистить корзину?')) {
+            cart = [];
+            localStorage.removeItem('cart');
+            updateCartDisplay();
+        }
+    }
+
+    async function checkout() {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || !user.id) {
+            alert('Пожалуйста, войдите в систему для оформления заказа');
+            window.location.href = '/';
+            return;
+        }
+
+        if (cart.length === 0) {
+            alert('Корзина пуста!');
+            return;
+        }
+
+        // Проверка перед отправкой
+        const insufficientItems = [];
+        for (const item of cart) {
+            // Можно добавить дополнительную проверку с сервера
+            if (item.quantity > item.maxQuantity) {
+                insufficientItems.push(item.name);
+            }
+        }
+
+        if (insufficientItems.length > 0) {
+            alert(`Невозможно оформить заказ:\n${insufficientItems.map(name => `- ${name}`).join('\n')}\n\nКоличество изменилось, обновите корзину.`);
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/order/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items: cart })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert(data.message || 'Заказ успешно оформлен', 'success');
+
+                // ОБЯЗАТЕЛЬНО обновляем баланс ПОСЛЕ покупки
+                await updateUserBalance();
+
+                cart = [];
+                localStorage.removeItem('cart');
+                updateCartDisplay();
+
+                // Перезагружаем страницу через 1.5 секунды, чтобы увидеть изменения
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showAlert(data.message || 'Ошибка при оформлении заказа', 'danger');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showAlert('Ошибка сервера при оформлении заказа', 'danger');
+        }
+    }
+
+    function filterItems() {
+        const searchText = document.getElementById('searchText').value.toLowerCase();
+        const searchArticle = document.getElementById('searchArticle').value.toLowerCase();
+        const category = document.getElementById('categoryFilter').value;
+        const rarity = document.getElementById('rarityFilter').value;
+
+        document.querySelectorAll('.game-item').forEach(item => {
+            const name = item.dataset.name;
+            const article = item.dataset.article;
+            const itemCategory = item.dataset.category;
+            const itemRarity = item.dataset.rarity;
+
+            const matchText = searchText === '' || name.includes(searchText);
+            const matchArticle = searchArticle === '' || article.includes(searchArticle);
+            const matchCategory = !category || itemCategory === category;
+            const matchRarity = !rarity || itemRarity === rarity;
+
+            item.style.display = matchText && matchArticle && matchCategory && matchRarity ? '' : 'none';
+        });
+    }
+
+    function search() {
+        filterItems();
+    }
+
+    function resetFilters() {
+        document.getElementById('searchText').value = '';
+        document.getElementById('searchArticle').value = '';
+        document.getElementById('categoryFilter').value = '';
+        document.getElementById('rarityFilter').value = '';
+        filterItems();
+    }
+
+    function showAlert(msg, type = 'success') {
+        // Удаляем старые алерты
+        document.querySelectorAll('.alert-dismissible').forEach(alert => alert.remove());
+
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.style.position = 'fixed';
+        alert.style.top = '80px';
+        alert.style.right = '20px';
+        alert.style.zIndex = '9999';
+        alert.style.minWidth = '300px';
+        alert.innerHTML = `${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        document.body.appendChild(alert);
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 5000);
+    }
+
+    // Обновляем баланс при каждом открытии страницы
+    window.addEventListener('focus', updateUserBalance);
+</script>
+
+@functions {
+    private string GetIcon(string category)
+    {
+        return category switch
+        {
+            "Weapon" => "⚔️",
+            "Armor" => "🛡️",
+            "Potion" => "🧪",
+            "Accessory" => "💎",
+            _ => "📦"
+        };
+    }
+
+    private string GetCategoryIcon(string category)
+    {
+        return category switch
+        {
+            "Weapon" => "⚔️",
+            "Armor" => "🛡️",
+            "Potion" => "🧪",
+            "Accessory" => "💎",
+            _ => "📦"
+        };
+    }
+
+    private string GetCategoryName(string category)
+    {
+        return category switch
+        {
+            "Weapon" => "Оружие",
+            "Armor" => "Броня",
+            "Potion" => "Зелья",
+            "Accessory" => "Аксессуары",
+            "Other" => "Другое",
+            _ => category
+        };
+    }
+
+    private string GetRarityClass(string rarity)
+    {
+        return rarity switch
+        {
+            "Legendary" => "badge bg-warning",
+            "Mythical" => "badge bg-danger",
+            "Epic" => "badge bg-primary",
+            "Rare" => "badge bg-info",
+            "Uncommon" => "badge bg-success",
+            _ => "badge bg-secondary"
+        };
+    }
+
+    private string GetCategoryBadgeClass(string category)
+    {
+        return category switch
+        {
+            "Weapon" => "bg-danger",
+            "Armor" => "bg-success",
+            "Potion" => "bg-purple",
+            "Accessory" => "bg-warning",
+            "Other" => "bg-secondary",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetQuantityClass(int quantity)
+    {
+        return quantity switch
+        {
+            <= 0 => "badge bg-danger",
+            <= 5 => "badge bg-warning",
+            <= 20 => "badge bg-info",
+            _ => "badge bg-success"
+        };
+    }
+}

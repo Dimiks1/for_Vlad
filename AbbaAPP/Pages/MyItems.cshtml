@@ -1,0 +1,454 @@
+﻿@page
+@{
+    ViewData["Title"] = "Мои товары - ToolDrop";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-boxes me-2"></i> Мои товары</h1>
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    <i class="fas fa-plus me-2"></i> Добавить товар
+                </button>
+            </div>
+
+            <!-- Статистика -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Всего товаров</h5>
+                            <h2 id="totalItems" class="mb-0">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Общая стоимость</h5>
+                            <h2 id="totalValue" class="mb-0">0 ₽</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Общее количество</h5>
+                            <h2 id="totalQuantity" class="mb-0">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Закончились</h5>
+                            <h2 id="outOfStock" class="mb-0">0</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Таблица товаров -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Название</th>
+                                    <th>Артикул</th>
+                                    <th>Цена</th>
+                                    <th>Количество</th>
+                                    <th>Категория</th>
+                                    <th>Редкость</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsTableBody">
+                                <!-- Товары будут загружены через JavaScript -->
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Загрузка...</span>
+                                        </div>
+                                        <p class="mt-3">Загружаем ваши товары...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно создания/редактирования товара -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Добавить товар</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="itemForm">
+                    <input type="hidden" id="itemId">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Название товара *</label>
+                            <input type="text" class="form-control" id="itemName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Артикул (уникальный) *</label>
+                            <input type="text" class="form-control" id="itemCode" required>
+                            <small class="text-muted">Уникальный код товара, например: SWORD001</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" id="itemDescription" rows="3"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Цена (₽) *</label>
+                            <input type="number" class="form-control" id="itemPrice" min="1" step="0.01" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Количество *</label>
+                            <input type="number" class="form-control" id="itemQuantity" min="0" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Изображение (URL)</label>
+                            <input type="text" class="form-control" id="itemImageUrl"
+                                   placeholder="https://example.com/image.jpg">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Категория</label>
+                            <select class="form-select" id="itemCategory">
+                                <option value="Weapon">⚔️ Оружие</option>
+                                <option value="Armor">🛡️ Броня</option>
+                                <option value="Potion">🧪 Зелья</option>
+                                <option value="Accessory">💎 Аксессуары</option>
+                                <option value="Other">📦 Другое</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Редкость</label>
+                            <select class="form-select" id="itemRarity">
+                                <option value="Common">⚪ Common</option>
+                                <option value="Uncommon">🟢 Uncommon</option>
+                                <option value="Rare">🔵 Rare</option>
+                                <option value="Epic">🟣 Epic</option>
+                                <option value="Legendary">🟡 Legendary</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="saveItemBtn" onclick="saveItem()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить этот товар?</p>
+                <p class="text-danger"><small>Это действие нельзя отменить!</small></p>
+                <input type="hidden" id="deleteItemId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">Удалить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let items = [];
+    let itemModal;
+    let deleteModal;
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        itemModal = new bootstrap.Modal(document.getElementById('itemModal'));
+        deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        loadMyItems();
+        loadStats();
+    });
+
+    // Загрузить мои товары
+    async function loadMyItems() {
+        try {
+            const response = await fetch('/api/myitems');
+
+            if (response.status === 401) {
+                window.location.href = '/';
+                return;
+            }
+
+            const data = await response.json();
+            items = data.items || [];
+            renderItemsTable();
+        } catch (error) {
+            console.error('Ошибка при загрузке товаров:', error);
+            showAlert('Ошибка при загрузке товаров', 'danger');
+        }
+    }
+
+    // Загрузить статистику
+    async function loadStats() {
+        try {
+            const response = await fetch('/api/myitems/stats');
+
+            if (response.ok) {
+                const data = await response.json();
+                const stats = data.stats;
+
+                document.getElementById('totalItems').textContent = stats.totalItems;
+                document.getElementById('totalValue').textContent = stats.totalValue.toFixed(2) + ' ₽';
+                document.getElementById('totalQuantity').textContent = stats.totalQuantity;
+                document.getElementById('outOfStock').textContent = stats.outOfStock;
+            }
+        } catch (error) {
+            console.error('Ошибка при загрузке статистики:', error);
+        }
+    }
+
+    // Отобразить таблицу товаров
+    function renderItemsTable() {
+        const tbody = document.getElementById('itemsTableBody');
+
+        if (items.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <p class="text-muted">У вас пока нет товаров</p>
+                        <button class="btn btn-primary mt-2" onclick="openCreateModal()">
+                            <i class="fas fa-plus me-2"></i> Добавить первый товар
+                        </button>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        let html = '';
+        items.forEach((item, index) => {
+            const quantityClass = item.quantity === 0 ? 'badge bg-danger' :
+                                item.quantity <= 5 ? 'badge bg-warning' :
+                                'badge bg-success';
+
+            const rarityBadge = item.rarity === 'Legendary' ? 'badge bg-warning' :
+                              item.rarity === 'Epic' ? 'badge bg-primary' :
+                              item.rarity === 'Rare' ? 'badge bg-info' :
+                              item.rarity === 'Uncommon' ? 'badge bg-success' :
+                              'badge bg-secondary';
+
+            html += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>
+                        <strong>${item.name}</strong>
+                        ${item.description ? `<br><small class="text-muted">${item.description}</small>` : ''}
+                    </td>
+                    <td><code>${item.itemCode}</code></td>
+                    <td><strong>${item.price.toFixed(2)} ₽</strong></td>
+                    <td><span class="${quantityClass}">${item.quantity} шт.</span></td>
+                    <td><span class="badge bg-info">${item.category}</span></td>
+                    <td><span class="${rarityBadge}">${item.rarity}</span></td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="editItem(${item.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="openDeleteModal(${item.id}, '${item.name}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    // Открыть модальное окно создания товара
+    function openCreateModal() {
+        document.getElementById('modalTitle').textContent = 'Добавить товар';
+        document.getElementById('itemForm').reset();
+        document.getElementById('itemId').value = '';
+        itemModal.show();
+    }
+
+    // Открыть модальное окно редактирования товара
+    function editItem(itemId) {
+        const item = items.find(i => i.id === itemId);
+        if (!item) return;
+
+        document.getElementById('modalTitle').textContent = 'Редактировать товар';
+        document.getElementById('itemId').value = item.id;
+        document.getElementById('itemName').value = item.name;
+        document.getElementById('itemDescription').value = item.description || '';
+        document.getElementById('itemCode').value = item.itemCode;
+        document.getElementById('itemPrice').value = item.price;
+        document.getElementById('itemQuantity').value = item.quantity;
+        document.getElementById('itemImageUrl').value = item.imageUrl || '';
+        document.getElementById('itemCategory').value = item.category;
+        document.getElementById('itemRarity').value = item.rarity;
+
+        itemModal.show();
+    }
+
+    // Сохранить товар (создать или обновить)
+    async function saveItem() {
+        const itemId = document.getElementById('itemId').value;
+        const name = document.getElementById('itemName').value.trim();
+        const description = document.getElementById('itemDescription').value.trim();
+        const itemCode = document.getElementById('itemCode').value.trim();
+        const price = parseFloat(document.getElementById('itemPrice').value);
+        const quantity = parseInt(document.getElementById('itemQuantity').value);
+        const imageUrl = document.getElementById('itemImageUrl').value.trim();
+        const category = document.getElementById('itemCategory').value;
+        const rarity = document.getElementById('itemRarity').value;
+
+        // Валидация
+        if (!name || !itemCode || !price || price <= 0 || quantity < 0) {
+            showAlert('Заполните все обязательные поля корректно', 'warning');
+            return;
+        }
+
+        const saveBtn = document.getElementById('saveItemBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Сохранение...';
+
+        try {
+            let response;
+            if (itemId) {
+                // Обновление существующего товара
+                response = await fetch(`/api/myitems/${itemId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        description: description || null,
+                        itemCode,
+                        price,
+                        quantity,
+                        imageUrl: imageUrl || null,
+                        category,
+                        rarity
+                    })
+                });
+            } else {
+                // Создание нового товара
+                response = await fetch('/api/myitems', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        description: description || null,
+                        itemCode,
+                        price,
+                        quantity,
+                        imageUrl: imageUrl || null,
+                        category,
+                        rarity
+                    })
+                });
+            }
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert(data.message, 'success');
+                itemModal.hide();
+                await loadMyItems();
+                await loadStats();
+            } else {
+                showAlert(data.message, 'danger');
+            }
+        } catch (error) {
+            console.error('Ошибка при сохранении товара:', error);
+            showAlert('Ошибка сервера при сохранении товара', 'danger');
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Сохранить';
+        }
+    }
+
+    // Открыть модальное окно подтверждения удаления
+    function openDeleteModal(itemId, itemName) {
+        document.getElementById('deleteItemId').value = itemId;
+        document.querySelector('#deleteModal .modal-body p:first-child').textContent =
+            `Вы уверены, что хотите удалить товар "${itemName}"?`;
+        deleteModal.show();
+    }
+
+    // Подтвердить удаление товара
+    async function confirmDelete() {
+        const itemId = document.getElementById('deleteItemId').value;
+
+        try {
+            const response = await fetch(`/api/myitems/${itemId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showAlert(data.message, 'success');
+                deleteModal.hide();
+                await loadMyItems();
+                await loadStats();
+            } else {
+                showAlert(data.message, 'danger');
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении товара:', error);
+            showAlert('Ошибка сервера при удалении товара', 'danger');
+        }
+    }
+
+    // Вспомогательная функция для показа уведомлений
+    function showAlert(msg, type = 'success') {
+        // Удаляем старые алерты
+        document.querySelectorAll('.alert-dismissible').forEach(alert => alert.remove());
+
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.style.position = 'fixed';
+        alert.style.top = '80px';
+        alert.style.right = '20px';
+        alert.style.zIndex = '9999';
+        alert.style.minWidth = '300px';
+        alert.innerHTML = `${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        document.body.appendChild(alert);
+
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 5000);
+    }
+</script>

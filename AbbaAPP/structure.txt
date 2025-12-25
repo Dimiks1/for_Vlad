@@ -1,0 +1,18 @@
+/Controllers
+	AccountController.cs
+	OrderController.cs
+/Data
+	ApplicationDbContext.cs
+/Models
+	CartItem.cs
+	GameItem.cs
+	Order.cs
+	OrderItem.cs
+	User.cs
+/Pages
+	_ViewImporsts.cshtml
+	_ViewStart.cshtml
+	Catalog.cshtml
+	Catalog.cshtml.cs
+	Index.cshtml
+	Index.cshtml.cs

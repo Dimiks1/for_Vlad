@@ -1,0 +1,327 @@
+@page
+@{
+    ViewData["Title"] = "ToolDrop - Магазин игровых предметов";
+}
+
+<!-- Hero Section -->
+<div class="hero-section" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%), url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 600%22><rect fill=%22%23333%22 width=%221200%22 height=%22600%22/></svg>'); background-size: cover; background-position: center; padding: 150px 0; color: white; text-align: center;">
+    <div class="container">
+        <h1 class="display-3 fw-bold mb-4">⚔️ ToolDrop</h1>
+        <p class="lead mb-4" style="font-size: 24px;">Магазин эксклюзивных игровых предметов</p>
+        <p class="mb-5" style="font-size: 18px;">Оружие, броня, зелья и редкие артефакты для вашей любимой игры</p>
+        <a href="/catalog" class="btn btn-light btn-lg">Перейти в каталог 🛒</a>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">⚡ Быстрая доставка</h5>
+                    <p class="card-text">Получайте предметы мгновенно после оплаты. Никаких задержек!</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">🛡️ Безопасность</h5>
+                    <p class="card-text">Защита покупателей и гарантия качества. Ваши данные в безопасности!</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">💎 Редкие предметы</h5>
+                    <p class="card-text">Эксклюзивные и легендарные вещи только для вас!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- About Section -->
+<div class="bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">О ToolDrop</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <h4>🎮 Что мы предлагаем?</h4>
+                <p>
+                    ToolDrop - это платформа для покупки и продажи игровых предметов.
+                    Мы собрали лучшую коллекцию редких и эксклюзивных вещи для ваших любимых игр.
+                </p>
+                <p>Каждый предмет отобран вручную и проверен на подлинность.</p>
+            </div>
+            <div class="col-md-6">
+                <h4>📊 Статистика</h4>
+                <ul class="list-unstyled">
+                    <li>✅ <strong>5000+</strong> довольных клиентов</li>
+                    <li>✅ <strong>10000+</strong> уникальных предметов</li>
+                    <li>✅ <strong>24/7</strong> поддержка</li>
+                    <li>✅ <strong>100%</strong> гарантия качества</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="bg-primary text-white py-5 text-center">
+    <div class="container">
+        <h2 class="mb-4">Готовы начать?</h2>
+        <p class="lead mb-4">Зарегистрируйтесь прямо сейчас и получите бонус 100 рублей на счёт!</p>
+        <button class="btn btn-light btn-lg" onclick="openAuthModal()">Зарегистрироваться</button>
+    </div>
+</div>
+
+<!-- Auth Modal (только для главной страницы) -->
+<div class="modal fade" id="authModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="authTitle">Вход</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Вход Form -->
+                <div id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label">Никнейм</label>
+                        <input type="text" class="form-control" id="loginUsername" placeholder="Введите никнейм">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="loginPassword" placeholder="Введите пароль">
+                    </div>
+                    <button class="btn btn-primary w-100 mb-3" onclick="login()">Войти</button>
+                    <div class="text-center mb-3">
+                        <a href="#" onclick="showForgotPassword()">Забыли пароль?</a>
+                    </div>
+                    <hr>
+                    <p class="text-center">Нет аккаунта? <a href="#" onclick="switchToRegister()">Зарегистрируйтесь</a></p>
+                </div>
+
+                <!-- Регистрация Form -->
+                <div id="registerForm" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">Никнейм</label>
+                        <input type="text" class="form-control" id="regUsername" placeholder="Выберите никнейм">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="regEmail" placeholder="Ваш email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="regPassword" placeholder="Пароль">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Повторите пароль</label>
+                        <input type="password" class="form-control" id="regPasswordConfirm" placeholder="Повторите пароль">
+                    </div>
+                    <button class="btn btn-primary w-100 mb-3" onclick="register()">Зарегистрироваться</button>
+                    <hr>
+                    <p class="text-center">Уже есть аккаунт? <a href="#" onclick="switchToLogin()">Войдите</a></p>
+                </div>
+
+                <!-- Forgot Password -->
+                <div id="forgotPasswordForm" style="display: none;">
+                    <div class="alert alert-info text-center">
+                        <h5>😢 Поплачь об этом</h5>
+                        <p>К сожалению, восстановление пароля недоступно.</p>
+                    </div>
+                    <button class="btn btn-secondary w-100" onclick="switchToLogin()">Вернуться к входу</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Функция для обновления навигации на главной странице
+    function updateNavigation() {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const authBtn = document.getElementById('authBtn');
+
+        if (user) {
+            // Пользователь авторизован - меняем кнопку на "Профиль"
+            if (authBtn) {
+                authBtn.innerHTML = `
+                    <div class="dropdown">
+                        <button class="btn btn-auth dropdown-toggle" type="button" id="profileDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            👤 ${user.username}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                            <li class="dropdown-header">
+                                <div class="fw-bold text-dark">${user.username}</div>
+                                <div class="user-balance mt-2">Баланс: ${user.balance} ₽</div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-dark" href="/profile"><i class="fas fa-user-cog"></i> Настройки профиля</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-dark" href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Выйти</a></li>
+                        </ul>
+                    </div>
+                `;
+            }
+        } else {
+            // Пользователь не авторизован - показываем кнопку "Авторизация"
+            if (authBtn) {
+                authBtn.innerHTML = 'Авторизация';
+                authBtn.setAttribute('onclick', 'openAuthModal()');
+            }
+        }
+    }
+
+    let authModal;
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        updateNavigation();
+    });
+
+    function openAuthModal() {
+        authModal = new bootstrap.Modal(document.getElementById('authModal'));
+        switchToLogin();
+        authModal.show();
+    }
+
+    function switchToLogin() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('forgotPasswordForm').style.display = 'none';
+        document.getElementById('authTitle').textContent = 'Вход';
+    }
+
+    function switchToRegister() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'block';
+        document.getElementById('forgotPasswordForm').style.display = 'none';
+        document.getElementById('authTitle').textContent = 'Регистрация';
+    }
+
+    function showForgotPassword() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('forgotPasswordForm').style.display = 'block';
+        document.getElementById('authTitle').textContent = 'Восстановление пароля';
+    }
+
+    async function login() {
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+
+        if (!username || !password) {
+            alert('Заполните все поля!');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/account/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Закрываем модальное окно авторизации сразу
+                if (authModal) {
+                    authModal.hide();
+                }
+
+                // Обновляем навигацию
+                updateNavigation();
+
+                // Перезагружаем страницу
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Ошибка сервера');
+        }
+    }
+
+    async function register() {
+        const username = document.getElementById('regUsername').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+
+        if (!username || !email || !password || !passwordConfirm) {
+            alert('Заполните все поля!');
+            return;
+        }
+
+        if (password !== passwordConfirm) {
+            alert('Пароли не совпадают!');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/account/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Закрываем модальное окно авторизации сразу
+                if (authModal) {
+                    authModal.hide();
+                }
+
+                // Обновляем навигацию
+                updateNavigation();
+
+                // Перезагружаем страницу
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Ошибка сервера');
+        }
+    }
+
+    // Выход из аккаунта
+    async function logout() {
+        if (confirm('Вы уверены, что хотите выйти?')) {
+            try {
+                const response = await fetch('/api/account/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('cart');
+                    updateNavigation();
+                    alert('Вы вышли из системы');
+                    location.href = '/';
+                } else {
+                    const data = await response.json();
+                    alert(data.message || 'Ошибка при выходе');
+                }
+            } catch (error) {
+                console.error('Ошибка при выходе:', error);
+                alert('Ошибка сервера');
+            }
+        }
+    }
+</script>

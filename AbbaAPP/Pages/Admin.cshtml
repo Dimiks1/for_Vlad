@@ -1,0 +1,1022 @@
+﻿@page
+@{
+    ViewData["Title"] = "Админ панель - ToolDrop";
+}
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4">Админ панель</h1>
+
+    <!-- Быстрая статистика -->
+    <div class="row mb-4" id="adminStats">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Пользователи</h5>
+                    <h2 id="totalUsers">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Товары</h5>
+                    <h2 id="totalItems">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Заказы</h5>
+                    <h2 id="totalOrders">0</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Выручка</h5>
+                    <h2 id="totalRevenue">0 ₽</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вкладки -->
+    <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button">
+                Пользователи
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="items-tab" data-bs-toggle="tab" data-bs-target="#items" type="button">
+                Все товары
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="system-items-tab" data-bs-toggle="tab" data-bs-target="#system-items" type="button">
+                Создать товар
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="deposit-requests-tab" data-bs-toggle="tab" data-bs-target="#deposit-requests" type="button">
+                Заявки на пополнение
+            </button>
+        </li>
+    </ul>
+
+    <!-- Содержимое вкладок -->
+    <div class="tab-content p-3 border border-top-0 rounded-bottom" id="adminTabsContent">
+        <!-- Вкладка пользователей -->
+        <div class="tab-pane fade show active" id="users" role="tabpanel">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" id="userSearch" placeholder="Поиск по логину или email...">
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Логин</th>
+                            <th>Email</th>
+                            <th>Баланс</th>
+                            <th>Админ</th>
+                            <th>Дата регистрации</th>
+                            <th>Последний вход</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Данные загружаются через JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Вкладка всех товаров -->
+        <div class="tab-pane fade" id="items" role="tabpanel">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" id="itemSearch" placeholder="Поиск по названию или артикулу...">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="itemOwnerFilter">
+                        <option value="">Все владельцы</option>
+                        <option value="system">Системные</option>
+                        <option value="user">Пользовательские</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Артикул</th>
+                            <th>Цена</th>
+                            <th>Кол-во</th>
+                            <th>Владелец</th>
+                            <th>Дата создания</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsTableBody">
+                        <!-- Данные загружаются через JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Вкладка создания системного товара -->
+        <div class="tab-pane fade" id="system-items" role="tabpanel">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Создать системный товар</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Название товара *</label>
+                                <input type="text" class="form-control" id="sysItemName">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Артикул (уникальный) *</label>
+                                <input type="text" class="form-control" id="sysItemCode">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Описание</label>
+                                <textarea class="form-control" id="sysItemDescription" rows="3"></textarea>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Цена (₽) *</label>
+                                    <input type="number" class="form-control" id="sysItemPrice" min="1" step="0.01">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Количество *</label>
+                                    <input type="number" class="form-control" id="sysItemQuantity" min="0">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Изображение (URL)</label>
+                                <input type="text" class="form-control" id="sysItemImageUrl">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Категория</label>
+                                    <select class="form-select" id="sysItemCategory">
+                                        <option value="Weapon">Оружие</option>
+                                        <option value="Armor">Броня</option>
+                                        <option value="Potion">Зелья</option>
+                                        <option value="Accessory">Аксессуары</option>
+                                        <option value="Other">Другое</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Редкость</label>
+                                    <select class="form-select" id="sysItemRarity">
+                                        <option value="Common">Common</option>
+                                        <option value="Uncommon">Uncommon</option>
+                                        <option value="Rare">Rare</option>
+                                        <option value="Epic">Epic</option>
+                                        <option value="Legendary">Legendary</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary w-100" onclick="createSystemItem()">Создать системный товар</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Информация</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Системные товары:</p>
+                            <ul>
+                                <li>Не привязаны к конкретному пользователю</li>
+                                <li>Отображаются в общем каталоге</li>
+                                <li>Могут быть куплены любым пользователем</li>
+                                <li>Управляются только администраторами</li>
+                            </ul>
+                            <p class="text-muted small">После создания товар сразу появится в каталоге</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка заявок на пополнение -->
+        <div class="tab-pane fade" id="deposit-requests" role="tabpanel">
+            <div class="alert alert-info">
+                <h5>Заявки на пополнение баланса</h5>
+                <p>Здесь будут отображаться заявки от пользователей на пополнение баланса.</p>
+                <p class="mb-0">Функционал в разработке...</p>
+            </div>
+
+            <!-- Можно добавить таблицу с заявками позже -->
+            <div id="depositRequestsList" class="text-center py-5">
+                <i class="fas fa-tools fa-3x text-muted mb-3"></i>
+                <h5>Скоро будет доступно</h5>
+                <p class="text-muted">В ближайшее время здесь появится список заявок на пополнение баланса</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно пополнения баланса -->
+<div class="modal fade" id="balanceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Пополнение баланса пользователя</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Пользователь: <strong id="balanceUserName"></strong></p>
+                <p>Текущий баланс: <strong id="currentBalance">0</strong> ₽</p>
+                <div class="mb-3">
+                    <label class="form-label">Сумма пополнения (₽)</label>
+                    <input type="number" class="form-control" id="balanceAmount" min="1" step="0.01">
+                </div>
+                <input type="hidden" id="balanceUserId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="processBalanceUpdate()">Пополнить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно сброса пароля -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Сброс пароля пользователя</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Пользователь: <strong id="resetPasswordUserName"></strong></p>
+                <div class="mb-3">
+                    <label class="form-label">Новый пароль</label>
+                    <input type="text" class="form-control" id="newPassword" value="@GenerateRandomPassword()">
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Важно!</strong> Запишите новый пароль и передайте его пользователю
+                </div>
+                <input type="hidden" id="resetPasswordUserId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-danger" onclick="processPasswordReset()">Сбросить пароль</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно деталей пользователя -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Детали пользователя</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="userDetailsContent">
+                    <!-- Данные загружаются динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования товара -->
+<div class="modal fade" id="editItemModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактирование товара</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editItemForm">
+                    <input type="hidden" id="editItemId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Название товара</label>
+                            <input type="text" class="form-control" id="editItemName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Артикул</label>
+                            <input type="text" class="form-control" id="editItemCode" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" id="editItemDescription" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Цена (₽)</label>
+                            <input type="number" class="form-control" id="editItemPrice" min="0" step="0.01" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Количество</label>
+                            <input type="number" class="form-control" id="editItemQuantity" min="0" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Изображение (URL)</label>
+                            <input type="text" class="form-control" id="editItemImageUrl">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Категория</label>
+                            <select class="form-select" id="editItemCategory">
+                                <option value="Weapon">Оружие</option>
+                                <option value="Armor">Броня</option>
+                                <option value="Potion">Зелья</option>
+                                <option value="Accessory">Аксессуары</option>
+                                <option value="Other">Другое</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Редкость</label>
+                            <select class="form-select" id="editItemRarity">
+                                <option value="Common">Common</option>
+                                <option value="Uncommon">Uncommon</option>
+                                <option value="Rare">Rare</option>
+                                <option value="Epic">Epic</option>
+                                <option value="Legendary">Legendary</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Владелец (ID пользователя)</label>
+                            <input type="number" class="form-control" id="editItemUserId" min="0">
+                            <small class="text-muted">0 или пусто = системный товар</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Тип товара</label>
+                            <select class="form-select" id="editItemType">
+                                <option value="false">Системный</option>
+                                <option value="true">Пользовательский</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="saveItemChanges()">Сохранить</button>
+                <button type="button" class="btn btn-danger" onclick="deleteAdminItem()">Удалить товар</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Глобальные переменные
+    let allUsers = [];
+    let allItems = [];
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAdminStats();
+        loadUsers();
+        loadItems();
+
+        // Поиск пользователей
+        document.getElementById('userSearch').addEventListener('input', filterUsers);
+
+        // Поиск товаров
+        document.getElementById('itemSearch').addEventListener('input', filterItems);
+        document.getElementById('itemOwnerFilter').addEventListener('change', filterItems);
+    });
+
+    // Загрузка статистики
+    async function loadAdminStats() {
+        try {
+            const response = await fetch('/api/admin/stats');
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                throw new Error('Ошибка загрузки статистики');
+            }
+
+            const data = await response.json();
+
+            document.getElementById('totalUsers').textContent = data.stats.totalUsers;
+            document.getElementById('totalItems').textContent = data.stats.totalItems;
+            document.getElementById('totalOrders').textContent = data.stats.totalOrders;
+            document.getElementById('totalRevenue').textContent = data.stats.totalRevenue.toFixed(2) + ' ₽';
+        } catch (error) {
+            console.error('Ошибка загрузки статистики:', error);
+            showAlert('Ошибка загрузки статистики', 'danger');
+        }
+    }
+
+    // Загрузка пользователей
+    async function loadUsers() {
+        try {
+            const response = await fetch('/api/admin/users');
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                throw new Error('Ошибка загрузки пользователей');
+            }
+
+            const data = await response.json();
+            allUsers = data.users;
+            renderUsersTable(allUsers);
+        } catch (error) {
+            console.error('Ошибка загрузки пользователей:', error);
+            showAlert('Ошибка загрузки пользователей', 'danger');
+        }
+    }
+
+    // Отображение таблицы пользователей
+    function renderUsersTable(users) {
+        const tbody = document.getElementById('usersTableBody');
+
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Нет пользователей</td></tr>';
+            return;
+        }
+
+        let html = '';
+        users.forEach(user => {
+            html += `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>
+                        <strong>${user.username}</strong>
+                        <div class="small text-muted">${user.email}</div>
+                    </td>
+                    <td>${user.email}</td>
+                    <td><strong>${user.balance} ₽</strong></td>
+                    <td>
+                        <span class="badge ${user.isAdmin ? 'bg-success' : 'bg-secondary'}">
+                            ${user.isAdmin ? 'Да' : 'Нет'}
+                        </span>
+                    </td>
+                    <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td>${user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Никогда'}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="viewUserDetails(${user.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-success" onclick="openBalanceModal(${user.id}, '${user.username}', ${user.balance})">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </button>
+                            <button class="btn btn-outline-warning" onclick="openResetPasswordModal(${user.id}, '${user.username}')">
+                                <i class="fas fa-key"></i>
+                            </button>
+                            ${!user.isAdmin ? `
+                                <button class="btn btn-outline-info" onclick="makeUserAdmin(${user.id}, '${user.username}')">
+                                    <i class="fas fa-crown"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    // Фильтрация пользователей
+    function filterUsers() {
+        const searchTerm = document.getElementById('userSearch').value.toLowerCase();
+
+        if (!searchTerm) {
+            renderUsersTable(allUsers);
+            return;
+        }
+
+        const filteredUsers = allUsers.filter(user =>
+            user.username.toLowerCase().includes(searchTerm) ||
+            user.email.toLowerCase().includes(searchTerm)
+        );
+
+        renderUsersTable(filteredUsers);
+    }
+
+    // Загрузка всех товаров
+    async function loadItems() {
+        try {
+            const response = await fetch('/api/admin/items');
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                throw new Error('Ошибка загрузки товаров');
+            }
+
+            const data = await response.json();
+            allItems = data.items;
+            renderItemsTable(allItems);
+        } catch (error) {
+            console.error('Ошибка загрузки товаров:', error);
+            showAlert('Ошибка загрузки товаров', 'danger');
+        }
+    }
+
+    // Отображение таблицы товаров
+    function renderItemsTable(items) {
+        const tbody = document.getElementById('itemsTableBody');
+
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Нет товаров</td></tr>';
+            return;
+        }
+
+        let html = '';
+        items.forEach(item => {
+            const isSystem = !item.userId;
+
+            html += `
+                <tr>
+                    <td>${item.id}</td>
+                    <td>
+                        <strong>${item.name}</strong>
+                        <div class="small text-muted">${item.description}</div>
+                    </td>
+                    <td><code>${item.itemCode}</code></td>
+                    <td><strong>${item.price} ₽</strong></td>
+                    <td>
+                        <span class="badge ${item.quantity === 0 ? 'bg-danger' : item.quantity <= 5 ? 'bg-warning' : 'bg-success'}">
+                            ${item.quantity} шт.
+                        </span>
+                    </td>
+                    <td>
+                        ${isSystem ?
+                            '<span class="badge bg-primary">Система</span>' :
+                            `<span class="badge bg-info">${item.userName} (ID: ${item.userId})</span>`
+                        }
+                    </td>
+                    <td>${new Date(item.createdAt).toLocaleDateString()}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="openEditItemModal(${item.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    // Фильтрация товаров
+    function filterItems() {
+        const searchTerm = document.getElementById('itemSearch').value.toLowerCase();
+        const ownerFilter = document.getElementById('itemOwnerFilter').value;
+
+        let filteredItems = allItems;
+
+        if (searchTerm) {
+            filteredItems = filteredItems.filter(item =>
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.itemCode.toLowerCase().includes(searchTerm)
+            );
+        }
+
+        if (ownerFilter === 'system') {
+            filteredItems = filteredItems.filter(item => !item.userId);
+        } else if (ownerFilter === 'user') {
+            filteredItems = filteredItems.filter(item => item.userId);
+        }
+
+        renderItemsTable(filteredItems);
+    }
+
+    // Открыть модальное окно пополнения баланса
+    function openBalanceModal(userId, userName, currentBalance) {
+        document.getElementById('balanceUserId').value = userId;
+        document.getElementById('balanceUserName').textContent = userName;
+        document.getElementById('currentBalance').textContent = currentBalance;
+        document.getElementById('balanceAmount').value = '';
+
+        const modal = new bootstrap.Modal(document.getElementById('balanceModal'));
+        modal.show();
+    }
+
+    // Пополнение баланса
+    async function processBalanceUpdate() {
+        const userId = document.getElementById('balanceUserId').value;
+        const amount = parseFloat(document.getElementById('balanceAmount').value);
+
+        if (!amount || amount <= 0) {
+            showAlert('Введите корректную сумму', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/balance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                showAlert(data.message, 'success');
+
+                // Закрыть модальное окно
+                const modal = bootstrap.Modal.getInstance(document.getElementById('balanceModal'));
+                modal.hide();
+
+                // Обновить данные
+                loadUsers();
+                loadAdminStats();
+            } else {
+                const error = await response.json();
+                showAlert(error.message, 'danger');
+            }
+        } catch (error) {
+            console.error('Ошибка при пополнении баланса:', error);
+            showAlert('Ошибка сервера', 'danger');
+        }
+    }
+
+    // Открыть модальное окно сброса пароля
+    function openResetPasswordModal(userId, userName) {
+        document.getElementById('resetPasswordUserId').value = userId;
+        document.getElementById('resetPasswordUserName').textContent = userName;
+        document.getElementById('newPassword').value = generateRandomPassword();
+
+        const modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+        modal.show();
+    }
+
+    // Сброс пароля
+    async function processPasswordReset() {
+        const userId = document.getElementById('resetPasswordUserId').value;
+        const newPassword = document.getElementById('newPassword').value;
+
+        if (!newPassword) {
+            showAlert('Введите новый пароль', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newPassword })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                showAlert(`Пароль сброшен. Новый пароль: ${data.newPassword}`, 'success');
+
+                // Закрыть модальное окно
+                const modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+                modal.hide();
+            } else {
+                const error = await response.json();
+                showAlert(error.message, 'danger');
+            }
+        } catch (error) {
+            console.error('Ошибка при сбросе пароля:', error);
+            showAlert('Ошибка сервера', 'danger');
+        }
+    }
+
+    // Сделать пользователя администратором
+    async function makeUserAdmin(userId, userName) {
+        if (!confirm(`Сделать пользователя "${userName}" администратором?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/make-admin`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                showAlert(data.message, 'success');
+                loadUsers();
+            } else {
+                const error = await response.json();
+                showAlert(error.message, 'danger');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showAlert('Ошибка сервера', 'danger');
+        }
+    }
+
+    // Просмотр деталей пользователя
+    async function viewUserDetails(userId) {
+        try {
+            const response = await fetch(`/api/admin/users/${userId}`);
+            if (!response.ok) {
+                throw new Error('Ошибка загрузки данных');
+            }
+
+            const data = await response.json();
+
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Основная информация</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>ID:</strong></td><td>${data.user.id}</td></tr>
+                            <tr><td><strong>Логин:</strong></td><td>${data.user.username}</td></tr>
+                            <tr><td><strong>Email:</strong></td><td>${data.user.email}</td></tr>
+                            <tr><td><strong>Баланс:</strong></td><td><strong>${data.user.balance} ₽</strong></td></tr>
+                            <tr><td><strong>Админ:</strong></td><td>${data.user.isAdmin ? 'Да' : 'Нет'}</td></tr>
+                            <tr><td><strong>Регистрация:</strong></td><td>${new Date(data.user.createdAt).toLocaleString()}</td></tr>
+                            <tr><td><strong>Последний вход:</strong></td><td>${data.user.lastLogin ? new Date(data.user.lastLogin).toLocaleString() : 'Никогда'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Статистика</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Заказов:</strong></td><td>${data.stats.totalOrders}</td></tr>
+                            <tr><td><strong>Потрачено:</strong></td><td>${data.stats.totalSpent} ₽</td></tr>
+                            <tr><td><strong>Товаров:</strong></td><td>${data.stats.totalItems}</td></tr>
+                            <tr><td><strong>Активных:</strong></td><td>${data.stats.activeItems}</td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            if (data.recentOrders && data.recentOrders.length > 0) {
+                html += `
+                    <hr>
+                    <h6>Последние заказы</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID заказа</th>
+                                    <th>Сумма</th>
+                                    <th>Статус</th>
+                                    <th>Дата</th>
+                                    <th>Товаров</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                data.recentOrders.forEach(order => {
+                    html += `
+                        <tr>
+                            <td>#${order.id}</td>
+                            <td>${order.totalPrice} ₽</td>
+                            <td><span class="badge bg-info">${order.status}</span></td>
+                            <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                            <td>${order.itemCount}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            document.getElementById('userDetailsContent').innerHTML = html;
+            const modal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+            modal.show();
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showAlert('Ошибка загрузки данных пользователя', 'danger');
+        }
+    }
+
+    // Открыть модальное окно редактирования товара
+    async function openEditItemModal(itemId) {
+        try {
+            const response = await fetch(`/api/admin/items/${itemId}`);
+            if (!response.ok) {
+                throw new Error('Ошибка загрузки данных товара');
+            }
+
+            const data = await response.json();
+            const item = data.item;
+
+            document.getElementById('editItemId').value = item.id;
+            document.getElementById('editItemName').value = item.name;
+            document.getElementById('editItemDescription').value = item.description || '';
+            document.getElementById('editItemCode').value = item.itemCode;
+            document.getElementById('editItemPrice').value = item.price;
+            document.getElementById('editItemQuantity').value = item.quantity;
+            document.getElementById('editItemImageUrl').value = item.imageUrl || '';
+            document.getElementById('editItemCategory').value = item.category;
+            document.getElementById('editItemRarity').value = item.rarity;
+            document.getElementById('editItemUserId').value = item.userId || '';
+            document.getElementById('editItemType').value = item.isUserItem ? 'true' : 'false';
+
+            const modal = new bootstrap.Modal(document.getElementById('editItemModal'));
+            modal.show();
+        } catch (error) {
+            console.error('Ошибка:', error);
+            showAlert('Ошибка загрузки данных товара', 'danger');
+        }
+    }
+
+    // Сохранение изменений товара
+    async function saveItemChanges() {
+        const itemId = document.getElementById('editItemId').value;
+
+        const request = {
+            name: document.getElementById('editItemName').value,
+            description: document.getElementById('editItemDescription').value || null,
+            itemCode: document.getElementById('editItemCode').value,
+            price: parseFloat(document.getElementById('editItemPrice').value),
+            quantity: parseInt(document.getElementById('editItemQuantity').value),
+            imageUrl: document.getElementById('editItemImageUrl').value || null,
+            category: document.getElementById('editItemCategory').value,
+            rarity: document.getElementById('editItemRarity').value,
+            userId: parseInt(document.getElementById('editItemUserId').value) || null,
+            isUserItem: document.getElementById('editItemType').value === 'true'
+        };
+
+        try {
+            const response = await fetch(`/api/admin/items/${itemId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(request)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                showAlert(data.message, 'success');
+
+                // Закрыть модальное окно
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editItemModal'));
+                modal.hide();
+
+                // Обновить данные
+                loadItems();
+            } else {
+                const error = await response.json();
+                showAlert(error.message, 'danger');
+            }
+        } catch (error) {
+            console.error('Ошибка при обновлении товара:', error);
+            showAlert('Ошибка сервера', 'danger');
+        }
+    }
+
+    // Удаление товара (админ)
+    async function deleteAdminItem() {
+        const itemId = document.getElementById('editItemId').value;
+
+        if (!confirm('Вы уверены, что хотите удалить этот товар?\n\nЭто действие удалит товар из всех корзин пользователей и из базы данных.')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/admin/items/${itemId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                showAlert(data.message, 'success');
+
+                // Закрыть модальное окно
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editItemModal'));
+                modal.hide();
+
+                // Обновить данные
+                loadItems();
+                loadAdminStats();
+            } else {
+                const error = await response.json();
+                showAlert(error.message, 'danger');
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении товара:', error);
+            showAlert('Ошибка сервера', 'danger');
+        }
+    }
+
+    // Создание системного товара
+    async function createSystemItem() {
+        const request = {
+            name: document.getElementById('sysItemName').value,
+            description: document.getElementById('sysItemDescription').value || null,
+            itemCode: document.getElementById('sysItemCode').value,
+            price: parseFloat(document.getElementById('sysItemPrice').value),
+            quantity: parseInt(document.getElementById('sysItemQuantity').value),
+            imageUrl: document.getElementById('sysItemImageUrl').value || null,
+            category: document.getElementById('sysItemCategory').value,
+            rarity: document.getElementById('sysItemRarity').value
+        };
+
+        // Валидация
+        if (!request.name || !request.itemCode || !request.price || request.price <= 0 || request.quantity < 0) {
+            showAlert('Заполните все обязательные поля корректно', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/admin/items', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(request)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                showAlert(data.message, 'success');
+
+                // Очистить форму
+                document.getElementById('sysItemName').value = '';
+                document.getElementById('sysItemCode').value = '';
+                document.getElementById('sysItemDescription').value = '';
+                document.getElementById('sysItemPrice').value = '';
+                document.getElementById('sysItemQuantity').value = '';
+                document.getElementById('sysItemImageUrl').value = '';
+
+                // Обновить данные
+                loadItems();
+                loadAdminStats();
+            } else {
+                const error = await response.json();
+                showAlert(error.message, 'danger');
+            }
+        } catch (error) {
+            console.error('Ошибка при создании товара:', error);
+            showAlert('Ошибка сервера', 'danger');
+        }
+    }
+
+    // Вспомогательные функции
+    function generateRandomPassword() {
+        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let password = '';
+        for (let i = 0; i < 10; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return password;
+    }
+
+    function showAlert(msg, type = 'success') {
+        // Удаляем старые алерты
+        document.querySelectorAll('.alert-dismissible').forEach(alert => alert.remove());
+
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.style.position = 'fixed';
+        alert.style.top = '80px';
+        alert.style.right = '20px';
+        alert.style.zIndex = '9999';
+        alert.style.minWidth = '300px';
+        alert.innerHTML = `${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        document.body.appendChild(alert);
+
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.remove();
+            }
+        }, 5000);
+    }
+</script>
+
+@functions {
+    private string GenerateRandomPassword()
+    {
+        var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var random = new Random();
+        var password = new char[10];
+
+        for (int i = 0; i < password.Length; i++)
+        {
+            password[i] = chars[random.Next(chars.Length)];
+        }
+
+        return new string(password);
+    }
+}
